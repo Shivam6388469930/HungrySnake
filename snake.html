@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -46,5 +46,557 @@
             
        </div>
     </div>
+</body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Hungry Snake | Arcade Ready</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* cleaner UI, no accidental text selection */
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', 'Press Start 2P', 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* main frame with dynamic gradient + snake pattern overlay (improved version of snak-back) */
+        .frame {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(145deg, #0a2f2a 0%, #1a4a3f 100%);
+            position: relative;
+            align-items: center;
+            justify-content: flex-start; /* keeps form left, but will be responsive */
+            overflow: hidden;
+        }
+
+        /* animated snake scale pattern overlay – improves "snake-back" concept */
+        .frame::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 10% 20%, rgba(80, 200, 120, 0.12) 2px, transparent 2px),
+                              repeating-linear-gradient(45deg, rgba(50, 180, 100, 0.08) 0px, rgba(50, 180, 100, 0.08) 2px, transparent 2px, transparent 12px);
+            background-size: 32px 32px, 24px 24px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* animated snake silhouette - adds movement */
+        .frame::after {
+            content: "🐍";
+            position: absolute;
+            bottom: 5%;
+            right: 5%;
+            font-size: 140px;
+            opacity: 0.2;
+            pointer-events: none;
+            animation: slither 18s infinite ease-in-out;
+            z-index: 0;
+            transform: rotate(-10deg);
+        }
+
+        @keyframes slither {
+            0% { transform: translateX(0px) rotate(-5deg) scale(1); opacity: 0.2; }
+            50% { transform: translateX(-35px) rotate(2deg) scale(1.05); opacity: 0.28; }
+            100% { transform: translateX(0px) rotate(-5deg) scale(1); opacity: 0.2; }
+        }
+
+        /* main glass-morphism card */
+        .form {
+            margin-left: 8vw;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            background: rgba(10, 25, 20, 0.65);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            width: 460px;
+            max-width: 85vw;
+            height: auto;
+            min-height: 340px;
+            border: 1px solid rgba(110, 220, 140, 0.6);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(90, 210, 130, 0.3) inset;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.8rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 32px 55px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(130, 240, 150, 0.5) inset;
+            border-color: #a5f0b0;
+        }
+
+        /* enhanced title / hungry snake branding */
+        .game-title {
+            font-size: 2.3rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #f9f3c1, #c4ffb0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 8px;
+            font-family: 'Segoe UI', 'Press Start 2P', monospace;
+        }
+
+        .sub {
+            font-size: 0.85rem;
+            color: #bfe6cf;
+            background: rgba(0,0,0,0.35);
+            padding: 4px 14px;
+            border-radius: 40px;
+            margin-bottom: 28px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* modern input group */
+        .input-group {
+            width: 100%;
+            margin-bottom: 28px;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(20, 35, 28, 0.85);
+            border: 1.5px solid #6b9e7c;
+            border-radius: 60px;
+            padding: 14px 22px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #f0ffe6;
+            font-family: 'Segoe UI', system-ui;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(4px);
+            letter-spacing: 0.3px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #b6ff9e;
+            box-shadow: 0 0 0 3px rgba(110, 220, 120, 0.4);
+            background: rgba(25, 45, 35, 0.9);
+            color: white;
+        }
+
+        .input-field::placeholder {
+            color: #b2dbbc;
+            font-weight: 400;
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        /* start button - premium interactive */
+        .start-btn {
+            background: linear-gradient(105deg, #1f3d2f, #0f2a1f);
+            border: none;
+            padding: 12px 30px;
+            width: 200px;
+            font-size: 1.35rem;
+            font-weight: bold;
+            border-radius: 60px;
+            color: #f4ffe6;
+            font-family: inherit;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 6px 0 #05100a;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: 1px solid rgba(150, 230, 130, 0.6);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(105deg, #2b523d, #1a3a29);
+            box-shadow: 0 8px 0 #05100a;
+            border-color: #c0ffa8;
+            color: #ffffff;
+        }
+
+        .start-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #05100a;
+        }
+
+        /* snackbar / error message */
+        .toast-msg {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #1e2b24;
+            color: #ffecb3;
+            text-align: center;
+            border-radius: 50px;
+            padding: 12px 20px;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            font-weight: 500;
+            backdrop-filter: blur(12px);
+            background: rgba(20, 20, 18, 0.85);
+            border-left: 5px solid #f5bc70;
+            z-index: 200;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border-radius: 40px;
+            transition: visibility 0s, opacity 0.25s linear;
+            opacity: 0;
+            font-family: monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .toast-msg.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* decorative fruit elements */
+        .fruit-deco {
+            position: absolute;
+            font-size: 26px;
+            filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.3));
+            pointer-events: none;
+            opacity: 0.5;
+            animation: floatFruit 6s infinite alternate;
+        }
+
+        @keyframes floatFruit {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-20px) rotate(8deg); }
+        }
+
+        /* responsive design */
+        @media (max-width: 680px) {
+            .frame {
+                justify-content: center;
+            }
+            .form {
+                margin-left: 0;
+                width: 90vw;
+                min-height: 300px;
+                padding: 1.8rem;
+            }
+            .game-title {
+                font-size: 1.8rem;
+            }
+            .start-btn {
+                width: 170px;
+                font-size: 1.2rem;
+            }
+            .input-field {
+                padding: 12px 18px;
+            }
+        }
+
+        /* extra glow for name input when valid */
+        .input-field.valid-name {
+            border-color: #b3ffa7;
+            box-shadow: 0 0 8px #82dd7a;
+            background: rgba(30, 55, 38, 0.9);
+        }
+
+        /* loader effect (fake micro interaction before redirect) */
+        .loading-effect {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="frame">
+        <!-- decorative floating fruits for modern gaming vibe -->
+        <div class="fruit-deco" style="top: 12%; left: 15%;">🍎</div>
+        <div class="fruit-deco" style="bottom: 18%; left: 12%; animation-duration: 8s;">🍒</div>
+        <div class="fruit-deco" style="top: 70%; right: 12%; animation-duration: 5s;">🍉</div>
+        <div class="fruit-deco" style="top: 20%; right: 20%; animation-duration: 7s;">🍓</div>
+        
+        <div class="form" id="gameFormCard">
+            <div class="game-title">🐍 HUNGRY SNAKE</div>
+            <div class="sub">classic arcade • eat & grow</div>
+            
+            <div class="input-group">
+                <input type="text" id="playerName" class="input-field" placeholder="✦ Enter your name, champion ✦" maxlength="24" autocomplete="off">
+            </div>
+            
+            <button id="startGameBtn" class="start-btn">▶ START</button>
+            <div style="margin-top: 18px; font-size: 0.7rem; color: #cce3cf; opacity: 0.75; text-align: center;">🐍 use arrow keys • high scores await</div>
+        </div>
+    </div>
+
+    <div id="liveToast" class="toast-msg">⚠️ please enter a valid name to begin</div>
+
+    <script>
+        (function() {
+            // DOM elements
+            const nameInput = document.getElementById('playerName');
+            const startButton = document.getElementById('startGameBtn');
+            const toastEl = document.getElementById('liveToast');
+            const formCard = document.getElementById('gameFormCard');
+            
+            // Helper: show temporary error/warning message
+            let toastTimeout = null;
+            function showMessage(text, isError = true) {
+                if (toastTimeout) clearTimeout(toastTimeout);
+                toastEl.textContent = isError ? `⚠️ ${text}` : `✅ ${text}`;
+                toastEl.classList.add('show');
+                toastTimeout = setTimeout(() => {
+                    toastEl.classList.remove('show');
+                }, 2300);
+            }
+            
+            // name validation (cannot be empty or only spaces / too short)
+            function isValidName(name) {
+                if (!name) return false;
+                const trimmed = name.trim();
+                if (trimmed.length === 0) return false;
+                if (trimmed.length < 2) return false;
+                // allow letters, numbers, underscores, spaces, but no weird control chars
+                const validPattern = /^[a-zA-Z0-9\u4e00-\u9fa5\u3040-\u30FF\u0400-\u04FF\s\-_\.]{2,24}$/;
+                if (!validPattern.test(trimmed)) {
+                    return false;
+                }
+                return true;
+            }
+            
+            // update input styling based on live validity
+            function updateNameInputStyle() {
+                const rawName = nameInput.value;
+                const trimmed = rawName.trim();
+                if (trimmed.length === 0) {
+                    nameInput.classList.remove('valid-name');
+                    return;
+                }
+                if (trimmed.length >= 2 && /^[a-zA-Z0-9\u4e00-\u9fa5\u3040-\u30FF\u0400-\u04FF\s\-_\.]{2,24}$/.test(trimmed)) {
+                    nameInput.classList.add('valid-name');
+                } else {
+                    nameInput.classList.remove('valid-name');
+                }
+            }
+            
+            nameInput.addEventListener('input', function(e) {
+                updateNameInputStyle();
+                // optional: limit excessive spaces but keep multi-word
+                if (this.value.length > 24) {
+                    this.value = this.value.slice(0, 24);
+                    showMessage("Maximum 24 characters", false);
+                }
+            });
+            
+            // Enhanced start handler: validate & redirect with smooth UX + local storage greeting
+            function handleStartGame() {
+                // get raw name
+                let playerNameRaw = nameInput.value;
+                let finalName = playerNameRaw.trim();
+                
+                // special: if empty, show error & shake effect
+                if (!finalName || finalName.length === 0) {
+                    showMessage("Please enter your name to start the hunt!", true);
+                    // subtle shake animation
+                    formCard.style.transform = "translateX(0px)";
+                    formCard.style.animation = "shakeAnim 0.4s ease-in-out 0s 1";
+                    setTimeout(() => {
+                        formCard.style.animation = "";
+                    }, 400);
+                    nameInput.focus();
+                    return;
+                }
+                
+                // validate name pattern & length
+                if (finalName.length < 2) {
+                    showMessage("Name must be at least 2 characters long", true);
+                    nameInput.focus();
+                    return;
+                }
+                
+                const nameRegex = /^[a-zA-Z0-9\u4e00-\u9fa9\u3040-\u30FF\u0400-\u04FF\s\-_\.]{2,24}$/;
+                if (!nameRegex.test(finalName)) {
+                    showMessage("Use letters, numbers, spaces or simple dots/dashes", true);
+                    return;
+                }
+                
+                // extra sanitization: trim multiple spaces internally but keep identity
+                finalName = finalName.replace(/\s+/g, ' ').trim();
+                if (finalName.length === 0) {
+                    showMessage("Invalid name after cleaning", true);
+                    return;
+                }
+                
+                // Store player name in localStorage so the snake game (Hungery_Sanke.py or hypothetical web game) can retrieve
+                // Since original linked to a .py file, but we improve the front-end and preserve the href? BUT better user experience:
+                // We create a safe redirect but with better loading feedback.
+                // The original had <a href="Hungery_Sanke.py"> which is a python file (unlikely to be served directly in browser).
+                // For real UX, I will make the START button either launch a simulated game start or redirect, but we preserve the link behavior?
+                // Original code: <a href="Hungery_Sanke.py"><input type="button" ...></a> – That would try to navigate to .py file, which browsers may download.
+                // To IMPROVE user experience, I'll do an intelligent hybrid: store name, then either use the same link or show a modern "game launching" info.
+                // But to be robust, I'll create a redirect that respects the original target but not break UX -> Provide a transition display.
+                // Since this is pure frontend improvement, we can make start button optionally launch game in new context? But no backend – but we show success.
+                // However, the requirement is improve existing UI and frontend experience. It's better to provide a "Launch Game" with proper feedback,
+                // maybe open the python file in a new tab? Not safe. So let's present a modern modal that says "Game is ready", but we also support redirect? 
+                // I'll implement a safe but improved version: If we preserve original link, after validation we redirect to "Hungery_Sanke.py".
+                // That's the expected behavior, BUT to improve UX: we show transition load effect, store name to session, then navigate.
+                // Even though .py might not open in typical web env, we provide a seamless message that game would start.
+                // For DEMONSTRATION of improved frontend, we will first store name in localStorage + sessionStorage, show success "Welcome, X! Launching snake realm..."
+                // Then after 0.4s, we attempt to redirect to "Hungery_Sanke.py". But we also handle possible error (page not found) by nice console log.
+                // However in real-world, might be a Python backend or user has extension. We mimic robust experience.
+                
+                // Save name for future game session
+                localStorage.setItem('snakePlayerName', finalName);
+                sessionStorage.setItem('activeSnakeUser', finalName);
+                
+                // UI loading effect on button and disable temporarily
+                startButton.classList.add('loading-effect');
+                startButton.innerHTML = "⟳ LAUNCHING ...";
+                startButton.disabled = true;
+                nameInput.disabled = true;
+                
+                // Show brief confirmation message
+                showMessage(`🐍 Let's feast, ${finalName}! Preparing snake pit...`, false);
+                
+                // Save event for tracking optional - just UX delight
+                const gameStartEvent = new CustomEvent('snakeGameInit', { detail: { player: finalName, timestamp: Date.now() } });
+                document.dispatchEvent(gameStartEvent);
+                
+                // After a short preview, attempt to navigate to original snake game file (Hungery_Sanke.py)
+                // Because we need to respect original structure but with smarter feedback - the user feels engaged.
+                setTimeout(() => {
+                    // We can preserve the original anchor behavior via window location
+                    // original path: "Hungery_Sanke.py" (the href in original anchor)
+                    const gameUrl = "Hungery_Sanke.py";
+                    
+                    // But if the python file is unreachable in this context, we deliver a friendly fallback (unobtrusive)
+                    // better than just dying: we can show a custom "Game Simulator" message but keep the option.
+                    // For best UX and improvement: Check if maybe it's a link to actual game server? Rather than failing silently
+                    // We'll try to open, but also store that user is ready. Additionally, if the navigation fails (page doesn't respond fast)
+                    // we will not bother with false errors, just proceed.
+                    // However, to avoid "File not found" abrupt, we set a safety and tell user.
+                    // BETTER: Provide a modern game launcher imitation BUT because this is UI improvement we can offer both.
+                    // The improved version is that I allow the same link but if it doesn’t load after some time do nothing.
+                    // Actually I will just redirect exactly to Hungery_Sanke.py.
+                    // Also provide a tiny backup: display info about classic snake game in console.
+                    window.location.href = gameUrl;
+                    
+                    // fallback in case location doesn't change (due to onbeforeunload blocked? improbable). 
+                    // To be extra robust we set a timeout to re-enable if location didn't move? Not needed because browser will navigate.
+                    // but because the python file might not exist, at least users know we stored their name.
+                }, 350);
+                
+                // If after 2 seconds the page hasn't unloaded (if link prevented somehow), reset loading (safety)
+                setTimeout(() => {
+                    // This safety will rarely run if navigation occurs, but ensures no permanent loading state
+                    if (startButton.disabled === true) {
+                        startButton.classList.remove('loading-effect');
+                        startButton.innerHTML = "▶ START";
+                        startButton.disabled = false;
+                        nameInput.disabled = false;
+                        showMessage("Game launch took longer, check file path or click again", true);
+                    }
+                }, 1800);
+            }
+            
+            // Add enter key support for instant usability
+            nameInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    if (startButton.disabled) return;
+                    handleStartGame();
+                }
+            });
+            
+            // button click event
+            startButton.addEventListener('click', function(e) {
+                e.preventDefault();   // prevent any default weirdness
+                if (startButton.disabled) return;
+                handleStartGame();
+            });
+            
+            // Shake animation keyframes injection
+            const styleSheet = document.createElement("style");
+            styleSheet.textContent = `
+                @keyframes shakeAnim {
+                    0% { transform: translateX(0px); }
+                    25% { transform: translateX(-7px); }
+                    75% { transform: translateX(7px); }
+                    100% { transform: translateX(0px); }
+                }
+                .form {
+                    transition: transform 0.2s, box-shadow 0.3s, animation 0.2s;
+                }
+            `;
+            document.head.appendChild(styleSheet);
+            
+            // pre-populate if already stored a name (nice retention)
+            const savedName = localStorage.getItem('snakePlayerName');
+            if (savedName && savedName.trim().length > 0) {
+                nameInput.value = savedName;
+                updateNameInputStyle();
+                // subtle hint that returner is recognized
+                setTimeout(() => {
+                    if (document.visibilityState === "visible") {
+                        showMessage(`Welcome back, ${savedName}! Ready to slither?`, false);
+                    }
+                }, 200);
+            } else {
+                // small placeholder easter egg
+                nameInput.placeholder = "✦ hungry hero, enter your name ✦";
+            }
+            
+            // add mouse parallax or just background interactive? No needed but adds polish
+            const frameBg = document.querySelector('.frame');
+            if (frameBg) {
+                frameBg.addEventListener('mousemove', (e) => {
+                    // micro movement on floating fruits - optional subtle
+                    const fruits = document.querySelectorAll('.fruit-deco');
+                    const x = (e.clientX / window.innerWidth) * 10;
+                    const y = (e.clientY / window.innerHeight) * 10;
+                    fruits.forEach((fruit, idx) => {
+                        const moveX = (idx % 2 === 0 ? x : -x) * 0.3;
+                        const moveY = (idx % 2 === 0 ? y : -y) * 0.2;
+                        fruit.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                    });
+                });
+            }
+            
+            // disallow leading spaces to ensure consistency on blur
+            nameInput.addEventListener('blur', () => {
+                let current = nameInput.value;
+                if (current.trim().length === 0 && current.length > 0) {
+                    showMessage("Name cannot be just spaces", true);
+                } else if (current.length > 0 && current.trim().length > 0) {
+                    let trimmedNice = current.trim().replace(/\s+/g, ' ');
+                    if (trimmedNice !== current) {
+                        nameInput.value = trimmedNice;
+                        updateNameInputStyle();
+                    }
+                }
+            });
+            
+            console.log("🔥 Hungry Snake frontend enhanced: slick glass UI, live validation, and player persistence");
+        })();
+    </script>
 </body>
 </html>
